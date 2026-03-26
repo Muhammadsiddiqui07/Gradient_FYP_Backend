@@ -6,7 +6,8 @@ const VerifyToken = async (req, res, next) => {
     const { authorization } = req.headers
     const token = authorization.split(' ')[1];
 
-    jwt.verify(token, 'MS', function (err, decoded) {
+    const secret = process.env.JWT_SECRET || 'MS_SECRET';
+    jwt.verify(token, secret, function (err, decoded) {
         if (err) {
             return res.status(401).send({ message: 'unauthorized', error: err.message })
         }
