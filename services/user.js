@@ -8,6 +8,7 @@ import { OAuth2Client } from 'google-auth-library';
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'MS_SECRET';
+console.log(JWT_SECRET)
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
@@ -24,6 +25,7 @@ const loginSchema = Joi.object({
     email: Joi.string().email().required(),
     password: Joi.string().required(),
 });
+
 
 // ─── Signup ───────────────────────────────────────────────────────────────────
 
@@ -42,7 +44,7 @@ router.post('/signup', async (req, res) => {
         const newUser = new User({ firstName, lastName, email, password: hashedPassword, authProvider: 'local' });
         await newUser.save();
 
-        const token = jwt.sign({ _id: newUser._id, email: newUser.email, sub: newUser.email }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ _id: newUser._id, email: newUser.email }, JWT_SECRET, { expiresIn: '7d' });
 
         return res.status(201).json({
             success: true,
@@ -84,7 +86,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid password' });
         }
 
-        const token = jwt.sign({ _id: user._id, email: user.email, sub: user.email }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ _id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
         return res.status(200).json({
             success: true,
@@ -104,6 +106,51 @@ router.post('/login', async (req, res) => {
     }
 });
 
+
+// ─── Forgot Password ─────────────────────────────────────────────────────────
+import { sendOTP } from '../utils/mailer.js';
+
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    user.otp = otp;
+    user.otpExpiry = Date.now() + 600000;
+    await user.save();
+
+    try {
+        await sendOTP(email, otp); // Alag file wala function call kiya
+        res.status(200).json({ success: true, message: 'OTP SEND SUCEESFULLY!!' });
+    } catch (error) {
+        res.status(500).json({ message: 'Email is not send ' });
+    }
+});
+
+
+
+// ─── Reset Password ──────────────────────────────────────────────────────────
+router.post('/reset-password', async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+
+    const user = await User.findOne({ 
+        email, 
+        otp, 
+        otpExpiry: { $gt: Date.now() } 
+    });
+
+    if (!user) return res.status(400).json({ message: 'incoreect OTP or Expire' });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.otp = undefined; // OTP delete kar dein
+    user.otpExpiry = undefined;
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Password reset successfully' });
+});
 
 //─── Google OAuth (Token from Frontend) ──────────────────────────────────────
 // Frontend sends the Google ID token, backend verifies it using google-auth-library.
@@ -148,7 +195,7 @@ router.post('/google-auth', async (req, res) => {
             await user.save();
         }
 
-        const token = jwt.sign({ _id: user._id, email: user.email, sub: user.email }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ _id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
         return res.status(200).json({
             success: true,
