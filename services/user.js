@@ -44,7 +44,7 @@ router.post('/signup', async (req, res) => {
         const newUser = new User({ firstName, lastName, email, password: hashedPassword, authProvider: 'local' });
         await newUser.save();
 
-        const token = jwt.sign({ _id: newUser._id, email: newUser.email }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ _id: newUser._id, email: newUser.email, sub: newUser.email }, JWT_SECRET, { expiresIn: '7d' });
 
         return res.status(201).json({
             success: true,
@@ -86,7 +86,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid password' });
         }
 
-        const token = jwt.sign({ _id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ _id: user._id, email: user.email, sub: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
         return res.status(200).json({
             success: true,
@@ -195,7 +195,7 @@ router.post('/google-auth', async (req, res) => {
             await user.save();
         }
 
-        const token = jwt.sign({ _id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ _id: user._id, email: user.email, sub: user.email }, JWT_SECRET, { expiresIn: '7d' });
 
         return res.status(200).json({
             success: true,
