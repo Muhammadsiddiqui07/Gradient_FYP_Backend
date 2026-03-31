@@ -4,10 +4,6 @@ import VerifyToken from '../middleware/index.js';
 
 const router = express.Router();
 
-/**
- * GET /api/map?query=rivers
- * Protected route to analyze map queries.
- */
 router.get('/', VerifyToken, async (req, res) => {
     try {
         const { query } = req.query;
