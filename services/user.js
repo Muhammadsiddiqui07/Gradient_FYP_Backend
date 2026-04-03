@@ -8,9 +8,33 @@ import { OAuth2Client } from 'google-auth-library';
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'MS_SECRET';
-console.log(JWT_SECRET)
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_IDS = (process.env.GOOGLE_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+function getGoogleOAuthClientSecret() {
+    return (
+        process.env.GOOGLE_CLIENT_SECRET ||
+        process.env.OAUTH_CLIENT_SECRET ||
+        process.env.OAuth_Client_secret ||
+        ""
+    ).trim();
+}
+
+/**
+ * Auth code from Expo Go is always for the Web OAuth client (jaha… in your app), not the Android client.
+ * Set GOOGLE_WEB_CLIENT_ID explicitly, or list Android first and Web second in GOOGLE_CLIENT_IDS.
+ */
+function getWebClientIdForCodeExchange() {
+    const explicit = (process.env.GOOGLE_WEB_CLIENT_ID || "").trim();
+    if (explicit) return explicit;
+    if (GOOGLE_CLIENT_IDS.length >= 2) return GOOGLE_CLIENT_IDS[GOOGLE_CLIENT_IDS.length - 1];
+    return GOOGLE_CLIENT_IDS[0] || "";
+}
+
+const GOOGLE_WEB_CLIENT_ID_FOR_EXCHANGE = getWebClientIdForCodeExchange();
+const client = new OAuth2Client(GOOGLE_CLIENT_IDS[0] || "");
 
 // ─── Validation Schemas ───────────────────────────────────────────────────────
 
@@ -157,33 +181,92 @@ router.post('/reset-password', async (req, res) => {
 
 router.post('/google-auth', async (req, res) => {
     try {
-        const { idToken } = req.body;
+        const { idToken: bodyIdToken, code, redirectUri } = req.body;
+
+        if (!GOOGLE_CLIENT_IDS.length) {
+            return res.status(500).json({ success: false, message: 'Google OAuth is not configured on the server' });
+        }
+
+        let idToken = bodyIdToken;
+
+        // Expo Go + auth.expo.io: implicit id_token (hash) often breaks the proxy; app sends ?code= instead.
+        if (code) {
+            const secret = getGoogleOAuthClientSecret();
+            if (!secret) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Set GOOGLE_CLIENT_SECRET (or OAuth_Client_secret) — must be the Web client secret for jaha… ID',
+                });
+            }
+            const allowedRedirects = (process.env.GOOGLE_OAUTH_REDIRECT_URIS || process.env.GOOGLE_OAUTH_REDIRECT_URI || '')
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean);
+            if (!redirectUri || !allowedRedirects.includes(redirectUri)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid redirect URI for Google sign-in',
+                });
+            }
+            if (!GOOGLE_WEB_CLIENT_ID_FOR_EXCHANGE) {
+                return res.status(500).json({ success: false, message: 'Google Web client ID is not configured' });
+            }
+
+            const oauth2 = new OAuth2Client(GOOGLE_WEB_CLIENT_ID_FOR_EXCHANGE, secret, redirectUri);
+            let tokens;
+            try {
+                const tr = await oauth2.getToken(code);
+                tokens = tr.tokens;
+            } catch (err) {
+                console.error('Google code exchange error:', err);
+                return res.status(401).json({ success: false, message: 'Invalid or expired Google authorization code' });
+            }
+            if (!tokens.id_token) {
+                return res.status(401).json({ success: false, message: 'Google did not return an ID token' });
+            }
+            idToken = tokens.id_token;
+        }
 
         if (!idToken) {
-            return res.status(400).json({ success: false, message: 'Google ID Token is required' });
+            return res.status(400).json({ success: false, message: 'Google ID token or authorization code is required' });
         }
 
         // Verify the token
         const ticket = await client.verifyIdToken({
             idToken,
-            audience: GOOGLE_CLIENT_ID,
+            audience: GOOGLE_CLIENT_IDS,
         });
 
         const payload = ticket.getPayload();
-        const { sub: googleId, email, given_name: firstName, family_name: lastName, picture: profileImage } = payload;
+        const {
+            sub: googleId,
+            email,
+            email_verified: emailVerified,
+            given_name: firstName,
+            family_name: lastName,
+            picture: profileImage,
+        } = payload;
+
+        if (!email || emailVerified === false) {
+            return res.status(401).json({
+                success: false,
+                message: 'Google account email is not verified',
+            });
+        }
 
         // Check if user already exists
         let user = await User.findOne({ email });
+        let isNewUser = false;
 
         if (user) {
-            // Update existing user with Google ID if not already present
+            // Link Google ID for existing account without forcing provider migration.
             if (!user.googleId) {
                 user.googleId = googleId;
-                user.authProvider = 'google';
                 await user.save();
             }
         } else {
             // Create new user from Google data
+            isNewUser = true;
             user = new User({
                 firstName: firstName || 'Google',
                 lastName: lastName || 'User',
@@ -199,7 +282,7 @@ router.post('/google-auth', async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: 'Google login successful',
+            message: isNewUser ? 'Google signup successful' : 'Google login successful',
             user: {
                 _id: user._id,
                 firstName: user.firstName,
@@ -207,6 +290,7 @@ router.post('/google-auth', async (req, res) => {
                 email: user.email,
                 profileImage: user.profileImage,
             },
+            isNewUser,
             token
         });
 
