@@ -1,6 +1,5 @@
-import 'dotenv/config'; // Load environment variables IMMEDIATELY for use in other imports
-
 import express from 'express'
+import 'dotenv/config'; // Load environment variables IMMEDIATELY for use in other imports
 import cors from 'cors'
 import router from './routes/index.js'
 import mongoose from './db/index.js'

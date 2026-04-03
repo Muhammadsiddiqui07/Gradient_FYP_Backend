@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Joi from 'joi';
 import { OAuth2Client } from 'google-auth-library';
+import { sendOTP } from '../utils/mailer.js';
 
 const router = express.Router();
 
@@ -132,7 +133,6 @@ router.post('/login', async (req, res) => {
 
 
 // ─── Forgot Password ─────────────────────────────────────────────────────────
-import { sendOTP } from '../utils/mailer.js';
 
 router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
@@ -143,7 +143,7 @@ router.post('/forgot-password', async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
     user.otp = otp;
-    user.otpExpiry = Date.now() + 600000;
+    user.otpExpiry = Date.now() + 40000;
     await user.save();
 
     try {
@@ -160,18 +160,36 @@ router.post('/forgot-password', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
     const { email, otp, newPassword } = req.body;
 
-    const user = await User.findOne({ 
-        email, 
-        otp, 
-        otpExpiry: { $gt: Date.now() } 
-    });
+    // 1. Pehle sirf email se user dhoondo (Bina OTP aur Expiry check kiye)
+    const foundUser = await User.findOne({ email });
 
-    if (!user) return res.status(400).json({ message: 'incoreect OTP or Expire' });
+    // Agar user hi nahi mila
+    if (!foundUser) {
+        return res.status(404).json({ message: 'User not found!' });
+    }
 
-    user.password = await bcrypt.hash(newPassword, 10);
-    user.otp = undefined; // OTP delete kar dein
-    user.otpExpiry = undefined;
-    await user.save();
+    // 2. Terminal maii values check karo (Debugging)
+    console.log("------------------------------");
+    console.log("DB mein OTP haii:", foundUser.otp);
+    console.log("Aapne bheja haii:", otp);
+    console.log("DB Expiry Time:", foundUser.otpExpiry);
+    console.log("Abhi ka Time:", Date.now());
+    console.log("------------------------------");
+
+    // 3. Ab manual checks lagao taake exact error pata chale
+    if (foundUser.otp !== otp) {
+        return res.status(400).json({ message: 'Incorrect OTP! Match nahi horaha.' });
+    }
+
+    if (foundUser.otpExpiry < Date.now()) {
+        return res.status(400).json({ message: 'OTP Expired! Aapne 40 seconds se zyada laga diye.' });
+    }
+
+    // 4. Agar sab sahi haii tu password update karo
+    foundUser.password = await bcrypt.hash(newPassword, 10);
+    foundUser.otp = undefined; 
+    foundUser.otpExpiry = undefined;
+    await foundUser.save();
 
     res.status(200).json({ success: true, message: 'Password reset successfully' });
 });

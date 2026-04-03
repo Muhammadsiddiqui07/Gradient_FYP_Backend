@@ -26,7 +26,7 @@ export const sendOTP = async (email, otp) => {
             </div>
 
             <p style="font-size: 14px; color: #888; text-align: center;">
-                This OTP is valid for the next <b>10 minutes</b>.
+                This OTP is valid for the next <b>40 seconds</b>.
                 If you did not request a password reset, please ignore this email or contact support if you have concerns.
             </p>
             

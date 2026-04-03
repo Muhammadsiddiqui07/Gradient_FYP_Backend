@@ -30,7 +30,19 @@ const userSchema = new Schema({
         type: String,
         enum: ['local', 'google'],
         default: 'local'
+    },
+    otp: {
+        type: String,
+        default: undefined
+    },
+    otpExpiry: {
+        type: Number,
+        default: undefined
     }
+
+
+
+
 },
     {
         timestamps: true
