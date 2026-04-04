@@ -21,6 +21,11 @@ router.post('/ask-ai', VerifyToken, async (req, res) => {
         const token = authHeader.split(' ')[1];
 
         const result = await askAi(query, marks || 4, token);
+
+        if (result.answer) {
+            result.answer = result.answer.split('[EXAMINER AUDIT:')[0].trim();
+        }
+
         res.json(result);
     } catch (error) {
         res.status(error.response?.status || 500).json({
