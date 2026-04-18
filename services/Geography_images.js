@@ -11,26 +11,16 @@ const router = express.Router();
  * @desc Upload an image and forward it to the Python AI service for analysis
  * @access Private
  */
-router.post('/upload', VerifyToken, upload.any(), async (req, res) => {
+router.post('/geography_theory', VerifyToken, async (req, res) => {
     try {
-        // 1. Check if files exist (Optional)
-        const file = (req.files && req.files.length > 0) ? req.files[0] : null;
         const { query = "", marks = 4 } = req.body;
 
         // 2. Prepare form-data for the Python AI service
         const pythonFormData = new FormData();
-        
-        if (file) {
-            pythonFormData.append('image', file.buffer, {
-                filename: file.originalname,
-                contentType: file.mimetype,
-            });
-        }
-        
         pythonFormData.append('query', query);
         pythonFormData.append('marks', marks.toString());
 
-        console.log(`Forwarding image analysis request to AI service... (Query: "${query}", Image: ${file ? 'Yes' : 'No'})`);
+        console.log(`Forwarding geography theory request to AI service... (Query: "${query}")`);
 
         // 3. Forward request to Python Backend (localhost:8000)
         const pythonServiceUrl = 'http://localhost:8000/geography/analyze-map';
@@ -38,8 +28,6 @@ router.post('/upload', VerifyToken, upload.any(), async (req, res) => {
         const response = await axios.post(pythonServiceUrl, pythonFormData, {
             headers: {
                 ...pythonFormData.getHeaders(),
-                // If the Python service needs authorization, add it here
-                // 'Authorization': req.headers.authorization 
             },
             maxContentLength: Infinity,
             maxBodyLength: Infinity
