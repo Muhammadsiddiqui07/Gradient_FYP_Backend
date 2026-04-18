@@ -13,28 +13,24 @@ const router = express.Router();
  */
 router.post('/upload', VerifyToken, upload.any(), async (req, res) => {
     try {
-        // 1. Check if files exist
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'No image file provided. Please ensure you are sending a file.'
-            });
-        }
-
-        // Use the first file uploaded
-        const file = req.files[0];
+        // 1. Check if files exist (Optional)
+        const file = (req.files && req.files.length > 0) ? req.files[0] : null;
         const { query = "", marks = 4 } = req.body;
 
         // 2. Prepare form-data for the Python AI service
         const pythonFormData = new FormData();
-        pythonFormData.append('image', file.buffer, {
-            filename: file.originalname,
-            contentType: file.mimetype,
-        });
+        
+        if (file) {
+            pythonFormData.append('image', file.buffer, {
+                filename: file.originalname,
+                contentType: file.mimetype,
+            });
+        }
+        
         pythonFormData.append('query', query);
         pythonFormData.append('marks', marks.toString());
 
-        console.log(`Forwarding image analysis request to AI service... (Query: "${query}")`);
+        console.log(`Forwarding image analysis request to AI service... (Query: "${query}", Image: ${file ? 'Yes' : 'No'})`);
 
         // 3. Forward request to Python Backend (localhost:8000)
         const pythonServiceUrl = 'http://localhost:8000/geography/analyze-map';
@@ -72,28 +68,20 @@ router.post('/upload', VerifyToken, upload.any(), async (req, res) => {
 
 router.post('/Analyze_Image_Question', VerifyToken, upload.any(), async (req, res) => {
     try {
-        // 1. Check if files exist
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'No image file provided. Please ensure you are sending a file.'
-            });
-        }
-
-        // Use the first file uploaded
-        const file = req.files[0];
-        const { query = "", marks = 4 } = req.body;
+        // 1. Check if files exist (Optional)
+        const file = (req.files && req.files.length > 0) ? req.files[0] : null;
 
         // 2. Prepare form-data for the Python AI service
         const pythonFormData = new FormData();
-        pythonFormData.append('image', file.buffer, {
-            filename: file.originalname,
-            contentType: file.mimetype,
-        });
-        pythonFormData.append('query', query);
-        pythonFormData.append('marks', marks.toString());
-
-        console.log(`Forwarding image analysis request to AI service... (Query: "${query}")`);
+        
+        if (file) {
+            pythonFormData.append('image', file.buffer, {
+                filename: file.originalname,
+                contentType: file.mimetype,
+            });
+        }
+        
+        console.log(`Forwarding image analysis request to AI service... (Image: ${file ? 'Yes' : 'No'})`);
 
         // 3. Forward request to Python Backend (localhost:8000)
         const pythonServiceUrl = 'http://localhost:8000/geography/analyze-image-question';
