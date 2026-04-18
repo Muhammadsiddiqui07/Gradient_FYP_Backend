@@ -19,7 +19,7 @@ export const analyzeMap = async (query, token, imagePath = null) => {
         //     formData.append('image', fs.createReadStream(imagePath));
         // }
 
-        const response = await axios.post('http://localhost:8000/analyze-map', formData, {
+        const response = await axios.post('http://localhost:8000/geography/analyze-map', formData, {
             headers: {
                 ...formData.getHeaders(),
                 'Authorization': `Bearer ${token}`
