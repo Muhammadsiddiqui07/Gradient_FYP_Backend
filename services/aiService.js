@@ -12,7 +12,7 @@ export const askAi = async (query, marks, token) => {
         formData.append('query', query);
         formData.append('marks', marks);
 
-        const response = await axios.post(`${PYTHON_API_URL}/ask-ai`, formData, {
+        const response = await axios.post(`${PYTHON_API_URL}/history/ask-ai`, formData, {
             headers: {
                 ...formData.getHeaders(),
                 'Authorization': `Bearer ${token}`
