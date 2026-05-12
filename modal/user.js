@@ -31,23 +31,32 @@ const userSchema = new Schema({
         enum: ['local', 'google'],
         default: 'local'
     },
-    otp: {
+    verificationOtp: {
         type: String,
         default: undefined
     },
-    otpExpiry: {
+    verificationOtpExpiry: {
         type: Number,
         default: undefined
+    },
+    resetOtp: {
+        type: String,
+        default: undefined
+    },
+    resetOtpExpiry: {
+        type: Number,
+        default: undefined
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     }
-
-
-
 
 },
     {
         timestamps: true
     })
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('Users', userSchema);
 
 export default User;

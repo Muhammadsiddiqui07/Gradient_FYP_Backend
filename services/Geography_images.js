@@ -3,6 +3,7 @@ import axios from 'axios';
 import FormData from 'form-data';
 import upload from '../middleware/upload.js';
 import VerifyToken from '../middleware/index.js';
+import History from '../modal/history.js';
 
 const router = express.Router();
 
@@ -33,7 +34,17 @@ router.post('/geography_theory', VerifyToken, async (req, res) => {
             maxBodyLength: Infinity
         });
 
-        // 4. Return the AI results to the frontend
+        // 4. Save to History
+        const history = new History({
+            username: req.user.email,
+            query: query,
+            answer: response.data.answer || "No answer provided",
+            marks: marks || 4,
+            mode: 'geography'
+        });
+        await history.save();
+
+        // 5. Return the AI results to the frontend
         return res.status(200).json({
             success: true,
             message: 'Analysis completed successfully',
@@ -84,7 +95,17 @@ router.post('/Analyze_Image_Question', VerifyToken, upload.any(), async (req, re
             maxBodyLength: Infinity
         });
 
-        // 4. Return the AI results to the frontend
+        // 4. Save to History
+        const history = new History({
+            username: req.user.email,
+            query: req.body.query || "Geography image analysis",
+            answer: response.data.answer || "No answer provided",
+            marks: req.body.marks || 4,
+            mode: 'geography'
+        });
+        await history.save();
+
+        // 5. Return the AI results to the frontend
         return res.status(200).json({
             success: true,
             message: 'Analysis completed successfully',

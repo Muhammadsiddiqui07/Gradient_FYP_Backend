@@ -1,6 +1,7 @@
 import express from 'express';
 import { askAi, analyzeWeakness } from '../services/aiService.js';
 import VerifyToken from '../middleware/index.js';
+import History from '../modal/history.js';
 
 const router = express.Router();
 
@@ -25,6 +26,16 @@ router.post('/ask-ai', VerifyToken, async (req, res) => {
         if (result.answer) {
             result.answer = result.answer.split('[EXAMINER AUDIT:')[0].trim();
         }
+
+        // Save to History
+        const history = new History({
+            username: req.user.email,
+            query: query,
+            answer: result.answer,
+            marks: marks || 4,
+            mode: 'chat'
+        });
+        await history.save();
 
         res.json(result);
     } catch (error) {

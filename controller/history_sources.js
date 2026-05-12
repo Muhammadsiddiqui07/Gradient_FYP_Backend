@@ -2,6 +2,7 @@ import express from 'express';
 import { analyzeImageQuestion } from '../services/history_Sources.js';
 import VerifyToken from '../middleware/index.js';
 import upload from '../middleware/upload.js';
+import History from '../modal/history.js';
 
 const router = express.Router();
 
@@ -26,6 +27,16 @@ router.post('/analyze-image-question', VerifyToken, upload.any(), async (req, re
         console.log(`Forwarding history source analysis request to AI service... (Query: "${query}")`);
 
         const result = await analyzeImageQuestion(file.buffer, query, marks, token);
+
+        // Save to History
+        const history = new History({
+            username: req.user.email,
+            query: query || "Image analysis request",
+            answer: result.answer || "No answer provided",
+            marks: marks || 5,
+            mode: 'history'
+        });
+        await history.save();
 
         return res.status(200).json({
             success: true,
