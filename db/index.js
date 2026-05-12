@@ -9,7 +9,7 @@ const password = process.env.MONGODB_PASSWORD;
 const MONGO_URI = process.env.MONGO_URI || `mongodb+srv://muhammadsiddiqui1410_db_user:${encodeURIComponent(password)}@gradiant.6ezdxxr.mongodb.net/gradiant`;
 
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('Successfully connected to MongoDB.'))
+  // .then(() => console.log('Successfully connected to MongoDB.'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
 export default mongoose;

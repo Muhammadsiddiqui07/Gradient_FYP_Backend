@@ -33,7 +33,7 @@ router.post('/solve', VerifyToken, async (req, res) => {
         const history = new History({
             username: req.user.email,
             query: query,
-            answer: result.answer || "No answer provided",
+            answer: result.final_answer || "No answer provided",
             marks: marks || 4,
             mode: 'chat'
         });
