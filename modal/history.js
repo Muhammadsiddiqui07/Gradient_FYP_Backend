@@ -28,6 +28,6 @@ const historySchema = new Schema({
     timestamps: true
 });
 
-const History = mongoose.model('History', historySchema);
+const History = mongoose.model('Queries_History', historySchema);
 
 export default History;

@@ -3,7 +3,10 @@ import jwt from 'jsonwebtoken';
 
 const VerifyToken = async (req, res, next) => {
 
-    const { authorization } = req.headers
+    const { authorization } = req.headers;
+    if (!authorization) {
+        return res.status(401).send({ message: 'unauthorized', error: 'No authorization header provided' });
+    }
     const token = authorization.split(' ')[1];
 
     const secret = process.env.JWT_SECRET || 'MS_SECRET';

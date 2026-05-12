@@ -6,6 +6,7 @@ import papersRouter from '../controller/papers.js';
 import geographyRouter from '../controller/geography.js';
 import historySourcesRouter from '../controller/history_sources.js';
 import historyRouter from '../controller/history.js';
+import mathsRouter from '../controller/maths.js';
 
 const router = express.Router()
 
@@ -16,5 +17,6 @@ router.use('/papers', papersRouter)
 router.use('/geography', geographyRouter)
 router.use('/history-sources', historySourcesRouter)
 router.use('/chat-search-history', historyRouter)
+router.use('/maths_numerical', mathsRouter)
 
 export default router;

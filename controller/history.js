@@ -2,7 +2,7 @@ import express from 'express';
 import History from '../modal/history.js';
 import VerifyToken from '../middleware/index.js';
 
-const router = express.Router();
+const router = express.Router();  
 
 /**
  * @route GET /api/history
