@@ -1,6 +1,5 @@
 import express from 'express';
 import { maths_Numerical, getConcepts, getConceptByKey } from '../services/maths_Services.js';
-import { getPapersData } from '../services/aiService.js';
 import VerifyToken from '../middleware/index.js';
 import History from '../modal/history.js';
 
