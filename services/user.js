@@ -1,5 +1,6 @@
 import express from 'express';
 import User from '../modal/user.js';
+import Admin from '../modal/admin.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Joi from 'joi';
@@ -68,7 +69,7 @@ router.post('/signup', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ firstName, lastName, email, password: hashedPassword, authProvider: 'local' });
+        const newUser = new User({ firstName, lastName, email, password: hashedPassword });
         await newUser.save();
 
         // send verification otp
@@ -94,34 +95,65 @@ router.post('/login', async (req, res) => {
         const { email, password } = req.body;
 
         const user = await User.findOne({ email });
-        if (!user) {
+
+        if (user) {
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            if (!isPasswordValid) {
+                return res.status(401).json({ success: false, message: 'Invalid password' });
+            }
+
+            if (!user.isVerified) {
+                return res.status(403).json({ success: false, message: 'Please verify your email before logging in.' });
+            }
+
+            const token = jwt.sign(
+                { _id: user._id, email: user.email, sub: user.email, role: 'user' },
+                JWT_SECRET,
+                { expiresIn: '7d' }
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: 'Login successful',
+                role: 'user',
+                user: {
+                    _id: user._id,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    profileImage: user.profileImage,
+                    role: 'user',
+                },
+                token
+            });
+        }
+
+        const admin = await Admin.findOne({ email });
+        if (!admin) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        if (user.authProvider === 'google') {
-            return res.status(400).json({ success: false, message: 'This account uses Google Sign-In. Please login with Google.' });
-        }
-
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
+        const isAdminPasswordValid = await bcrypt.compare(password, admin.password);
+        if (!isAdminPasswordValid) {
             return res.status(401).json({ success: false, message: 'Invalid password' });
         }
 
-        if (!user.isVerified) {
-            return res.status(403).json({ success: false, message: 'Please verify your email before logging in.' });
-        }
-
-        const token = jwt.sign({ _id: user._id, email: user.email, sub: user.email }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign(
+            { _id: admin._id, email: admin.email, sub: admin.email, role: 'admin' },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
 
         return res.status(200).json({
             success: true,
             message: 'Login successful',
+            role: 'admin',
             user: {
-                _id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                profileImage: user.profileImage,
+                _id: admin._id,
+                firstName: admin.firstName,
+                lastName: admin.lastName,
+                email: admin.email,
+                role: 'admin',
             },
             token
         });

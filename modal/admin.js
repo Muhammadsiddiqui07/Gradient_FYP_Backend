@@ -18,7 +18,7 @@ const adminSchema = new Schema({
     },
     password: {
         type: String,
-        // not required — Google users won't have a password
+        required: true
     },
 
 },

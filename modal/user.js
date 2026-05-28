@@ -18,18 +18,10 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        // not required — Google users won't have a password
+        required: true
     },
     profileImage: {
         type: String,
-    },
-    googleId: {
-        type: String,  // stored when user signs in with Google
-    },
-    authProvider: {
-        type: String,
-        enum: ['local', 'google'],
-        default: 'local'
     },
     verificationOtp: {
         type: String,

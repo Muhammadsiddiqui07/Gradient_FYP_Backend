@@ -1,4 +1,5 @@
 import axios from 'axios';
+import FormData from 'form-data';
 
 const PYTHON_API_URL = 'http://localhost:8000';
 
@@ -60,8 +61,38 @@ export const getConceptByKey = async (key, token) => {
     }
 };
 
+
+export const AnalysisImage = async (key, token, imageFile) => {
+    try {
+        const formData = new FormData();
+        formData.append('image', imageFile.buffer, {
+            filename: imageFile.originalname || 'image.jpg',
+            contentType: imageFile.mimetype || 'image/jpeg',
+        });
+
+        const response = await axios.post(
+            `${PYTHON_API_URL}/api/math/analyze-image`,
+            formData,
+            {
+                headers: {
+                    ...formData.getHeaders(),
+                    'Authorization': `Bearer ${token}`,
+                },
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity,
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error(`Error in AnalysisImage (${key}):`, error.response?.data || error.message);
+        throw error;
+    }
+}
+
 export default {
     maths_Numerical,
     getConcepts,
-    getConceptByKey
+    getConceptByKey,
+    AnalysisImage
 };
