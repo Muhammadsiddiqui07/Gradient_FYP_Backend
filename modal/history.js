@@ -21,7 +21,7 @@ const historySchema = new Schema({
     },
     mode: {
         type: String,
-        enum: ['chat', 'geography', 'history'],
+        enum: ['chat', 'geography', 'history', 'economics'],
         default: 'chat'
     }
 }, {
