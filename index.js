@@ -8,6 +8,14 @@ import chalk from 'chalk';
 const app = express()
 const port = process.env.PORT || 4000;
 
+if (!process.env.SUPER_ADMIN_EMAIL?.trim() || !process.env.SUPER_ADMIN_PASSWORD?.trim()) {
+    console.warn(
+        chalk.yellow.bold(
+            'Warning: SUPER_ADMIN_EMAIL or SUPER_ADMIN_PASSWORD is missing in .env — super admin login will not work until you set them and restart the server.'
+        )
+    );
+}
+
 app.use(express.json())
 app.use(cors())
 

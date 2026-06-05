@@ -7,8 +7,16 @@ import History from '../modal/history.js';
 
 const router = express.Router();
 
-const SuperAdminEmail = process.env.SUPER_ADMIN_EMAIL
-const SuperAdminPassword = process.env.SUPER_ADMIN_PASSWORD
+const SuperAdminEmail = process.env.SUPER_ADMIN_EMAIL?.trim() ?? '';
+const SuperAdminPassword = process.env.SUPER_ADMIN_PASSWORD?.trim() ?? '';
+
+function verifySuperAdminCredentials(createdBy, createdByPass) {
+    if (!SuperAdminEmail || !SuperAdminPassword) return false;
+    return (
+        String(createdBy ?? '').trim().toLowerCase() === SuperAdminEmail.toLowerCase() &&
+        String(createdByPass ?? '') === SuperAdminPassword
+    );
+}
 
 // Simple Joi Schema
 const createAdminSchema = Joi.object({
@@ -35,7 +43,7 @@ router.post('/create-admin', async (req, res) => {
     const { firstName, lastName, email, password, createdBy, createdByPass } = req.body;
 
     // Super admin check
-    if (createdBy !== SuperAdminEmail || createdByPass !== SuperAdminPassword) {
+    if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
         return res.status(403).json({
             success: false,
             message: 'Unauthorized: Invalid super admin credentials'
@@ -83,7 +91,7 @@ router.get('/list-admins', async (req, res) => {
 
 
     // Super admin check
-    if (createdBy !== SuperAdminEmail || createdByPass !== SuperAdminPassword) {
+    if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
         return res.status(403).json({
             success: false,
             message: 'Unauthorized: Invalid super admin credentials'
@@ -116,7 +124,7 @@ router.delete('/delete-admin', async (req, res) => {
     }
 
     // Super admin check
-    if (createdBy !== SuperAdminEmail || createdByPass !== SuperAdminPassword) {
+    if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
         return res.status(403).json({
             success: false,
             message: 'Unauthorized: Invalid super admin credentials'
@@ -157,7 +165,7 @@ router.get('/list-users', async (req, res) => {
     }
 
     // Super admin check
-    if (createdBy !== SuperAdminEmail || createdByPass !== SuperAdminPassword) {
+    if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
         return res.status(403).json({
             success: false,
             message: 'Unauthorized: Invalid super admin credentials'
@@ -187,7 +195,7 @@ router.get('/list-history', async (req, res) => {
         });
     }
     // Super admin check
-    if (createdBy !== SuperAdminEmail || createdByPass !== SuperAdminPassword) {
+    if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
         return res.status(403).json({
             success: false,
             message: 'Unauthorized: Invalid super admin credentials'

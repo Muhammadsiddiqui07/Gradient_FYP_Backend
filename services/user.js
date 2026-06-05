@@ -9,8 +9,17 @@ import { sendOTP } from '../utils/mailer.js';
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'MS_SECRET';
-const SuperAdminEmail = process.env.SUPER_ADMIN_EMAIL;
-const SuperAdminPassword = process.env.SUPER_ADMIN_PASSWORD;
+const SuperAdminEmail = process.env.SUPER_ADMIN_EMAIL?.trim() ?? '';
+const SuperAdminPassword = process.env.SUPER_ADMIN_PASSWORD?.trim() ?? '';
+
+function isSuperAdminLogin(email, password) {
+    if (!SuperAdminEmail || !SuperAdminPassword) return false;
+    const normalizedEmail = String(email ?? '').trim().toLowerCase();
+    return (
+        normalizedEmail === SuperAdminEmail.toLowerCase() &&
+        String(password ?? '') === SuperAdminPassword
+    );
+}
 
 async function sendVerificationOtp(email, user) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -98,7 +107,7 @@ router.post('/login', async (req, res) => {
 
         const user = await User.findOne({ email });
 
-        if (email === SuperAdminEmail && password === SuperAdminPassword) {
+        if (isSuperAdminLogin(email, password)) {
             return res.status(200).json({
                 success: true,
                 message: 'Login successful',
