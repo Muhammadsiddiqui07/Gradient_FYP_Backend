@@ -1,7 +1,7 @@
 import express from 'express';
 import Admin from '../modal/admin.js';
-import bcrypt from 'bcrypt'
-import Joi from 'joi'
+import bcrypt from 'bcrypt';
+import Joi from 'joi';
 import User from '../modal/user.js';
 import History from '../modal/history.js';
 
@@ -12,13 +12,14 @@ const SuperAdminPassword = process.env.SUPER_ADMIN_PASSWORD?.trim() ?? '';
 
 function verifySuperAdminCredentials(createdBy, createdByPass) {
     if (!SuperAdminEmail || !SuperAdminPassword) return false;
+
     return (
         String(createdBy ?? '').trim().toLowerCase() === SuperAdminEmail.toLowerCase() &&
         String(createdByPass ?? '') === SuperAdminPassword
     );
 }
 
-// Simple Joi Schema
+// ================= CREATE ADMIN =================
 const createAdminSchema = Joi.object({
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
@@ -29,8 +30,6 @@ const createAdminSchema = Joi.object({
 });
 
 router.post('/create-admin', async (req, res) => {
-
-    // Validation
     const { error } = createAdminSchema.validate(req.body);
 
     if (error) {
@@ -42,7 +41,6 @@ router.post('/create-admin', async (req, res) => {
 
     const { firstName, lastName, email, password, createdBy, createdByPass } = req.body;
 
-    // Super admin check
     if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
         return res.status(403).json({
             success: false,
@@ -85,12 +83,10 @@ router.post('/create-admin', async (req, res) => {
     }
 });
 
+// ================= LIST ADMINS =================
 router.get('/list-admins', async (req, res) => {
-
     const { createdBy, createdByPass } = req.body;
 
-
-    // Super admin check
     if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
         return res.status(403).json({
             success: false,
@@ -99,11 +95,17 @@ router.get('/list-admins', async (req, res) => {
     }
 
     try {
-        const admins = await Admin.find({}, { password: 0 }); // Exclude password field
-        res.status(200).json({
+        const [admins, totalAdmins] = await Promise.all([
+            Admin.find({}, { password: 0 }),
+            Admin.countDocuments()
+        ]);
+
+        return res.status(200).json({
             success: true,
+            total: totalAdmins,
             data: admins
         });
+
     } catch (error) {
         console.error('Error fetching admins:', error);
         res.status(500).json({
@@ -113,17 +115,10 @@ router.get('/list-admins', async (req, res) => {
     }
 });
 
+// ================= DELETE ADMIN =================
 router.delete('/delete-admin', async (req, res) => {
     const { createdBy, createdByPass, email } = req.body;
 
-    if (!createdBy || !createdByPass) {
-        return res.status(400).json({
-            success: false,
-            message: 'Missing super admin credentials'
-        });
-    }
-
-    // Super admin check
     if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
         return res.status(403).json({
             success: false,
@@ -145,6 +140,7 @@ router.delete('/delete-admin', async (req, res) => {
             success: true,
             message: 'Admin deleted successfully'
         });
+
     } catch (error) {
         console.error('Error deleting admin:', error);
         res.status(500).json({
@@ -154,6 +150,7 @@ router.delete('/delete-admin', async (req, res) => {
     }
 });
 
+// ================= LIST USERS =================
 router.get('/list-users', async (req, res) => {
     const { createdBy, createdByPass } = req.body;
 
@@ -164,19 +161,25 @@ router.get('/list-users', async (req, res) => {
         });
     }
 
-    // Super admin check
     if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
         return res.status(403).json({
             success: false,
             message: 'Unauthorized: Invalid super admin credentials'
         });
     }
+
     try {
-        const users = await User.find({}, { password: 0 }); // Exclude password field
-        res.status(200).json({
+        const [users, totalUsers] = await Promise.all([
+            User.find({}, { password: 0 }),
+            User.countDocuments()
+        ]);
+
+        return res.status(200).json({
             success: true,
+            total: totalUsers,
             data: users
         });
+
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({
@@ -186,29 +189,37 @@ router.get('/list-users', async (req, res) => {
     }
 });
 
+// ================= LIST HISTORY =================
 router.get('/list-history', async (req, res) => {
     const { createdBy, createdByPass } = req.body;
+
     if (!createdBy || !createdByPass) {
         return res.status(400).json({
             success: false,
             message: 'Missing super admin credentials'
         });
     }
-    // Super admin check
+
     if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
         return res.status(403).json({
             success: false,
             message: 'Unauthorized: Invalid super admin credentials'
         });
     }
+
     try {
-        const history = await History.find({});
-        res.status(200).json({
+        const [history, totalHistory] = await Promise.all([
+            History.find({}),
+            History.countDocuments()
+        ]);
+
+        return res.status(200).json({
             success: true,
+            total: totalHistory,
             data: history
         });
-    }
-    catch (error) {
+
+    } catch (error) {
         console.error('Error fetching history:', error);
         res.status(500).json({
             success: false,
