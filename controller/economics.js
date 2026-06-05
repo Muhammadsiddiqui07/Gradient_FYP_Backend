@@ -11,10 +11,6 @@ router.post('/economics_paper_one', VerifyToken, upload.any(), async (req, res) 
         const { query } = req.body;
         const imageFile = req.files?.length > 0 ? req.files[0] : null;
 
-        if (!query?.trim() && !imageFile) {
-            return res.status(400).json({ message: 'Query or image is required' });
-        }
-
         const authHeader = req.headers.authorization;
         const token = authHeader.split(' ')[1];
 
