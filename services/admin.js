@@ -85,14 +85,6 @@ router.post('/create-admin', async (req, res) => {
 
 // ================= LIST ADMINS =================
 router.get('/list-admins', async (req, res) => {
-    const { createdBy, createdByPass } = req.body;
-
-    if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
-        return res.status(403).json({
-            success: false,
-            message: 'Unauthorized: Invalid super admin credentials'
-        });
-    }
 
     try {
         const [admins, totalAdmins] = await Promise.all([
@@ -117,14 +109,6 @@ router.get('/list-admins', async (req, res) => {
 
 // ================= DELETE ADMIN =================
 router.delete('/delete-admin', async (req, res) => {
-    const { createdBy, createdByPass, email } = req.body;
-
-    if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
-        return res.status(403).json({
-            success: false,
-            message: 'Unauthorized: Invalid super admin credentials'
-        });
-    }
 
     try {
         const deletedAdmin = await Admin.findOneAndDelete({ email });
@@ -152,21 +136,6 @@ router.delete('/delete-admin', async (req, res) => {
 
 // ================= LIST USERS =================
 router.get('/list-users', async (req, res) => {
-    const { createdBy, createdByPass } = req.body;
-
-    if (!createdBy || !createdByPass) {
-        return res.status(400).json({
-            success: false,
-            message: 'Missing super admin credentials'
-        });
-    }
-
-    if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
-        return res.status(403).json({
-            success: false,
-            message: 'Unauthorized: Invalid super admin credentials'
-        });
-    }
 
     try {
         const [users, totalUsers] = await Promise.all([
@@ -191,21 +160,6 @@ router.get('/list-users', async (req, res) => {
 
 // ================= LIST HISTORY =================
 router.get('/list-history', async (req, res) => {
-    const { createdBy, createdByPass } = req.body;
-
-    if (!createdBy || !createdByPass) {
-        return res.status(400).json({
-            success: false,
-            message: 'Missing super admin credentials'
-        });
-    }
-
-    if (!verifySuperAdminCredentials(createdBy, createdByPass)) {
-        return res.status(403).json({
-            success: false,
-            message: 'Unauthorized: Invalid super admin credentials'
-        });
-    }
 
     try {
         const [history, totalHistory] = await Promise.all([
