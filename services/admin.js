@@ -108,32 +108,36 @@ router.get('/list-admins', async (req, res) => {
 });
 
 // ================= DELETE ADMIN =================
-router.delete('/delete-admin', async (req, res) => {
+router.delete('/delete-admin/:email', async (req, res) => {
+    const email = req.params.email;
 
     try {
-        const deletedAdmin = await Admin.findOneAndDelete({ email });
+
+        const cleanedEmail = email.trim();
+
+        const deletedAdmin = await Admin.findOneAndDelete({ email: cleanedEmail });
 
         if (!deletedAdmin) {
             return res.status(404).json({
                 success: false,
-                message: 'Admin not found'
+                message: 'Admin nahi mila! Kindly email check karein ke database me exist karti hai ya nahi.'
             });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            message: 'Admin deleted successfully'
+            message: 'Admin deleted successfully',
+            data: deletedAdmin
         });
 
     } catch (error) {
         console.error('Error deleting admin:', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: 'Failed to delete admin'
         });
     }
 });
-
 // ================= LIST USERS =================
 router.get('/list-users', async (req, res) => {
 
