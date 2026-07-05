@@ -32,10 +32,13 @@ router.post('/ask-ai', VerifyToken, async (req, res) => {
             username: req.user.email,
             query: query,
             answer: result.answer,
+            response: JSON.parse(JSON.stringify(result)),
             marks: marks || 4,
             mode: 'chat'
         });
         await history.save();
+
+        log("history", history);
 
         res.json(result);
     } catch (error) {

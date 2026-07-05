@@ -24,8 +24,6 @@ router.post('/analyze-image-question', VerifyToken, upload.any(), async (req, re
         const authHeader = req.headers.authorization;
         const token = authHeader ? authHeader.split(' ')[1] : null;
 
-        console.log(`Forwarding history source analysis request to AI service... (Query: "${query}")`);
-
         const result = await analyzeImageQuestion(file.buffer, query, marks, token);
 
         // Save to History
@@ -33,6 +31,7 @@ router.post('/analyze-image-question', VerifyToken, upload.any(), async (req, re
             username: req.user.email,
             query: query || "Image analysis request",
             answer: result.answer || "No answer provided",
+            response: JSON.parse(JSON.stringify(result)),
             marks: marks || 5,
             mode: 'history'
         });

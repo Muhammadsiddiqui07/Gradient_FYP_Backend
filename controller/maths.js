@@ -34,6 +34,7 @@ router.post('/solve', VerifyToken, async (req, res) => {
             username: req.user.email,
             query: query,
             answer: result.final_answer || "No answer provided",
+            response: JSON.parse(JSON.stringify(result)),
             marks: marks || 4,
             mode: 'chat'
         });
@@ -106,6 +107,7 @@ router.post('/graph_analysis', VerifyToken, upload.any(), async (req, res) => {
             username: req.user.email,
             query: 'Graph Image Analysis',
             answer: result.final_answer || "No answer provided",
+            response: JSON.parse(JSON.stringify(result)),
             marks: 4,
             mode: 'chat'
         });

@@ -39,7 +39,8 @@ router.post('/geography_theory', VerifyToken, async (req, res) => {
             username: req.user.email,
             query: query,
             answer: response.data.answer || "No answer provided",
-            marks: marks || 4,
+            response: JSON.parse(JSON.stringify(response)),
+                marks: marks || 4,
             mode: 'geography'
         });
         await history.save();
@@ -72,14 +73,14 @@ router.post('/Analyze_Image_Question', VerifyToken, upload.any(), async (req, re
 
         // 2. Prepare form-data for the Python AI service
         const pythonFormData = new FormData();
-        
+
         if (file) {
             pythonFormData.append('image', file.buffer, {
                 filename: file.originalname,
                 contentType: file.mimetype,
             });
         }
-        
+
         console.log(`Forwarding image analysis request to AI service... (Image: ${file ? 'Yes' : 'No'})`);
 
         // 3. Forward request to Python Backend (localhost:8000)
@@ -100,6 +101,7 @@ router.post('/Analyze_Image_Question', VerifyToken, upload.any(), async (req, re
             username: req.user.email,
             query: req.body.query || "Geography image analysis",
             answer: response.data.answer || "No answer provided",
+            response: JSON.parse(JSON.stringify(response)),
             marks: req.body.marks || 4,
             mode: 'geography'
         });

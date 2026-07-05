@@ -24,6 +24,7 @@ router.get('/', VerifyToken, async (req, res) => {
             username: req.user.email,
             query: query,
             answer: result.answer || "Map analyzed successfully",
+            response: JSON.parse(JSON.stringify(result)),
             marks: 0,
             mode: 'geography'
         });

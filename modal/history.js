@@ -15,6 +15,10 @@ const historySchema = new Schema({
         type: String,
         required: true
     },
+    response: {
+        type: Schema.Types.Mixed,
+        required: true
+    },
     marks: {
         type: Number,
         default: 4

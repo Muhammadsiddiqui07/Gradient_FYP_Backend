@@ -35,6 +35,7 @@ router.post('/economics_paper_one', VerifyToken, upload.any(), async (req, res) 
             username: req.user.email,
             query: historyQuery,
             answer: result.final_answer || result.answer || 'No answer provided',
+            response: JSON.parse(JSON.stringify(result)),
             mode: 'economics',
         });
         await history.save();
@@ -95,6 +96,7 @@ router.post('/economics_paper_two', VerifyToken, upload.any(), async (req, res) 
             username: req.user.email,
             query: historyQuery,
             answer: result.final_answer || result.answer || JSON.stringify(result) || 'No answer provided',
+            response: JSON.parse(JSON.stringify(result)),
             mode: 'economics',
         });
         await history.save();
