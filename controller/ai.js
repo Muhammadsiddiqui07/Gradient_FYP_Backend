@@ -38,7 +38,7 @@ router.post('/ask-ai', VerifyToken, async (req, res) => {
         });
         await history.save();
 
-        log("history", history);
+        // consolog("history", history);
 
         res.json(result);
     } catch (error) {

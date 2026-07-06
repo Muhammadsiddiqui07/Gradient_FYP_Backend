@@ -12,6 +12,7 @@ const router = express.Router();
  * @desc Upload an image and forward it to the Python AI service for analysis
  * @access Private
  */
+
 router.post('/geography_theory', VerifyToken, async (req, res) => {
     try {
         const { query = "", marks = 4 } = req.body;
@@ -34,13 +35,14 @@ router.post('/geography_theory', VerifyToken, async (req, res) => {
             maxBodyLength: Infinity
         });
 
-        // 4. Save to History
+        // 4. Save to History (FIXED HERE 👇)
         const history = new History({
             username: req.user.email,
             query: query,
             answer: response.data.answer || "No answer provided",
-            response: JSON.parse(JSON.stringify(response)),
-                marks: marks || 4,
+            // Pure response ke bajaye sirf response.data ko save karein
+            response: response.data, 
+            marks: marks || 4,
             mode: 'geography'
         });
         await history.save();
@@ -53,6 +55,7 @@ router.post('/geography_theory', VerifyToken, async (req, res) => {
         });
 
     } catch (error) {
+        // Agar Axios khud fail ho tab ye error handle hoga
         console.error('AI Forwarding Error:', error.response?.data || error.message);
 
         const statusCode = error.response?.status || 500;
@@ -89,19 +92,18 @@ router.post('/Analyze_Image_Question', VerifyToken, upload.any(), async (req, re
         const response = await axios.post(pythonServiceUrl, pythonFormData, {
             headers: {
                 ...pythonFormData.getHeaders(),
-                // If the Python service needs authorization, add it here
-                // 'Authorization': req.headers.authorization 
             },
             maxContentLength: Infinity,
             maxBodyLength: Infinity
         });
 
-        // 4. Save to History
+        // 4. Save to History (FIXED HERE 👇)
         const history = new History({
             username: req.user.email,
             query: req.body.query || "Geography image analysis",
             answer: response.data.answer || "No answer provided",
-            response: JSON.parse(JSON.stringify(response)),
+            // Pure circular response ke bajaye sirf response ka plain data save karein
+            response: response.data, 
             marks: req.body.marks || 4,
             mode: 'geography'
         });
