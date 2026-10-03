@@ -40,6 +40,8 @@ router.post('/solve', VerifyToken, async (req, res) => {
         });
         await history.save();
 
+        // console.log("history", history);
+
         res.json(result);
     } catch (error) {
         console.error('Maths Controller Error:', error);
