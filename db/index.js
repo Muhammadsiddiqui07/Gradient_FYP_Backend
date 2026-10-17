@@ -6,10 +6,12 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const password = process.env.MONGODB_PASSWORD;
 // Prioritize full MONGO_URI if available, otherwise construct it from password
-const MONGO_URI = process.env.MONGO_URI || `mongodb+srv://muhammadsiddiqui1410_db_user:${encodeURIComponent(password)}@gradiant.6ezdxxr.mongodb.net/gradiant`;
+const MONGO_URI = (process.env.MONGO_URI || `mongodb+srv://muhammadsiddiqui1410_db_user:${encodeURIComponent(password)}@firstcluster.6ezdxxr.mongodb.net/gradiant?retryWrites=true&w=majority&appName=FirstCluster`).trim();
+
+mongoose.set('bufferTimeoutMS', 15000);
 
 mongoose.connect(MONGO_URI)
-  // .then(() => console.log('Successfully connected to MongoDB.'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+  .then(() => console.log('Successfully connected to MongoDB.'))
+  .catch((err) => console.error('MongoDB connection error:', err.message));
 
 export default mongoose;
