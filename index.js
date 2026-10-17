@@ -29,7 +29,16 @@ db.on('error', console.error.bind(console, 'Connection error:'));
 db.once('open', () => console.log(chalk.white.bgGreen.bold('DB connected!')));
 
 // Routes
-app.use('/api', router)
+app.use('/api', (req, res, next) => {
+    if (db.readyState !== 1) {
+        return res.status(503).json({
+            success: false,
+            message: 'Database is not connected. Check MongoDB configuration and network access.',
+        });
+    }
+
+    next();
+}, router)
 
 app.listen(port, () => {
     console.log(chalk.white.bgBlue.bold(`Server is running on port ${port}`));

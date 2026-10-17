@@ -1,7 +1,5 @@
-import axios from 'axios';
 import FormData from 'form-data';
-
-const PYTHON_API_URL = 'http://localhost:8000';
+import pythonApi from './pythonApi.js';
 
 const appendImage = (formData, fieldName, file) => {
     formData.append(fieldName, file.buffer, {
@@ -22,8 +20,8 @@ export const economics_Paper_One = async ({ query, imageFile, token }) => {
             appendImage(formData, 'image', imageFile);
         }
 
-        const response = await axios.post(
-            `${PYTHON_API_URL}/economics/explain-mcq`,
+        const response = await pythonApi.post(
+            '/economics/explain-mcq',
             formData,
             {
                 headers: {
@@ -55,8 +53,8 @@ export const economics_Paper_Two = async ({ section, query, imageFiles, token })
             appendImage(formData, 'images', file);
         }
 
-        const response = await axios.post(
-            `${PYTHON_API_URL}/economics/paper2/answer`,
+        const response = await pythonApi.post(
+            '/economics/paper2/answer',
             formData,
             {
                 headers: {

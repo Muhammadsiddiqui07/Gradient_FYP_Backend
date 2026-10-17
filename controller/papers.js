@@ -16,7 +16,7 @@ router.get('/:subject/years', VerifyToken, async (req, res) => {
         const result = await getPapersData(`/papers/${subject}/years`, token);
         res.json(result);
     } catch (error) {
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error fetching paper years',
             error: error.response?.data || error.message
         });
@@ -35,7 +35,7 @@ router.get('/:subject/:year', VerifyToken, async (req, res) => {
         const result = await getPapersData(`/papers/${subject}/${year}`, token);
         res.json(result);
     } catch (error) {
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error fetching paper sessions',
             error: error.response?.data || error.message
         });
@@ -54,7 +54,7 @@ router.get('/:subject/:year/:session', VerifyToken, async (req, res) => {
         const result = await getPapersData(`/papers/${subject}/${year}/${session}`, token);
         res.json(result);
     } catch (error) {
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error fetching paper content',
             error: error.response?.data || error.message
         });

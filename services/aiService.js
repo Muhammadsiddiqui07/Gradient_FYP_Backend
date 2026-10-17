@@ -1,7 +1,5 @@
-import axios from 'axios';
 import FormData from 'form-data';
-
-const PYTHON_API_URL = 'http://localhost:8000';
+import pythonApi from './pythonApi.js';
 
 /**
  * Sends a query to the AI examiner in the Python backend.
@@ -12,7 +10,7 @@ export const askAi = async (query, marks, token) => {
         formData.append('query', query);
         formData.append('marks', marks);
 
-        const response = await axios.post(`${PYTHON_API_URL}/history/ask-ai`, formData, {
+        const response = await pythonApi.post('/history/ask-ai', formData, {
             headers: {
                 ...formData.getHeaders(),
                 'Authorization': `Bearer ${token}`
@@ -31,7 +29,7 @@ export const askAi = async (query, marks, token) => {
  */
 export const analyzeWeakness = async (token) => {
     try {
-        const response = await axios.get(`${PYTHON_API_URL}/analyze-weakness`, {
+        const response = await pythonApi.get('/analyze-weakness', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -49,7 +47,7 @@ export const analyzeWeakness = async (token) => {
  */
 export const getPapersData = async (endpoint, token) => {
     try {
-        const response = await axios.get(`${PYTHON_API_URL}${endpoint}`, {
+        const response = await pythonApi.get(endpoint, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

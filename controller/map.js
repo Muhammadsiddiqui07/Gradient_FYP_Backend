@@ -32,7 +32,7 @@ router.get('/', VerifyToken, async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error analyzing map',
             error: error.response?.data || error.message
         });

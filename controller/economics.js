@@ -43,7 +43,7 @@ router.post('/economics_paper_one', VerifyToken, upload.any(), async (req, res) 
         res.json(result);
     } catch (error) {
         console.error('Economics Controller Error:', error);
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error interacting with AI',
             error: error.response?.data || error.message,
         });
@@ -104,7 +104,7 @@ router.post('/economics_paper_two', VerifyToken, upload.any(), async (req, res) 
         res.json(result);
     } catch (error) {
         console.error('Economics Paper Two Controller Error:', error);
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error interacting with AI',
             error: error.response?.data || error.message,
         });

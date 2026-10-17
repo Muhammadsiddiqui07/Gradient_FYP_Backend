@@ -1,5 +1,5 @@
-import axios from 'axios';
 import FormData from 'form-data';
+import pythonApi from './pythonApi.js';
 
 /**
  * Analyzes a map query using a separate Python FastAPI service.
@@ -19,7 +19,7 @@ export const analyzeMap = async (query, token, imagePath = null) => {
         //     formData.append('image', fs.createReadStream(imagePath));
         // }
 
-        const response = await axios.post('http://localhost:8000/geography/analyze-map', formData, {
+        const response = await pythonApi.post('/geography/analyze-map', formData, {
             headers: {
                 ...formData.getHeaders(),
                 'Authorization': `Bearer ${token}`

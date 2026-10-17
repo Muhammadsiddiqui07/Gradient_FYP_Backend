@@ -42,7 +42,7 @@ router.post('/ask-ai', VerifyToken, async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error interacting with AI',
             error: error.response?.data || error.message
         });
@@ -62,7 +62,7 @@ router.get('/analyze-weakness', VerifyToken, async (req, res) => {
         const result = await analyzeWeakness(token);
         res.json(result);
     } catch (error) {
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error analyzing weakness',
             error: error.response?.data || error.message
         });

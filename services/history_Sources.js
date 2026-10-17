@@ -1,7 +1,5 @@
-import axios from 'axios';
 import FormData from 'form-data';
-
-const PYTHON_API_URL = 'http://localhost:8000';
+import pythonApi from './pythonApi.js';
 
 /**
  * Analyzes a history source image with an optional query and marks.
@@ -13,7 +11,7 @@ export const analyzeImageQuestion = async (imageFile, query, marks, token) => {
         formData.append('query', query || "");
         formData.append('marks', marks || 5);
 
-        const response = await axios.post(`${PYTHON_API_URL}/history-sources/analyze-image-question`, formData, {
+        const response = await pythonApi.post('/history-sources/analyze-image-question', formData, {
             headers: {
                 ...formData.getHeaders(),
                 'Authorization': `Bearer ${token}`

@@ -1,7 +1,5 @@
-import axios from 'axios';
 import FormData from 'form-data';
-
-const PYTHON_API_URL = 'http://localhost:8000';
+import pythonApi from './pythonApi.js';
 
 /**
  * Sends a query to the AI examiner in the Python backend.
@@ -13,7 +11,7 @@ export const maths_Numerical = async (query, marks, token) => {
             marks: marks
         };
 
-        const response = await axios.post(`${PYTHON_API_URL}/api/math/solve`, payload, {
+        const response = await pythonApi.post('/api/math/solve', payload, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -32,7 +30,7 @@ export const maths_Numerical = async (query, marks, token) => {
  */
 export const getConcepts = async (token) => {
     try {
-        const response = await axios.get(`${PYTHON_API_URL}/api/math/concepts`, {
+        const response = await pythonApi.get('/api/math/concepts', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -49,7 +47,7 @@ export const getConcepts = async (token) => {
  */
 export const getConceptByKey = async (key, token) => {
     try {
-        const response = await axios.get(`${PYTHON_API_URL}/api/math/concepts/${key}`, {
+        const response = await pythonApi.get(`/api/math/concepts/${encodeURIComponent(key)}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -70,8 +68,8 @@ export const AnalysisImage = async (key, token, imageFile) => {
             contentType: imageFile.mimetype || 'image/jpeg',
         });
 
-        const response = await axios.post(
-            `${PYTHON_API_URL}/api/math/analyze-image`,
+        const response = await pythonApi.post(
+            '/api/math/analyze-image',
             formData,
             {
                 headers: {

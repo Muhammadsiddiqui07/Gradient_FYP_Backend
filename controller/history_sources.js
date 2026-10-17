@@ -44,7 +44,7 @@ router.post('/analyze-image-question', VerifyToken, upload.any(), async (req, re
         });
     } catch (error) {
         console.error('History Sources Controller Error:', error.response?.data || error.message);
-        const statusCode = error.response?.status || 500;
+        const statusCode = error.response?.status || error.statusCode || 500;
         const errorMessage = error.response?.data?.detail || error.message;
 
         return res.status(statusCode).json({

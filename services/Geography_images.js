@@ -1,6 +1,6 @@
 import express from 'express';
-import axios from 'axios';
 import FormData from 'form-data';
+import pythonApi from './pythonApi.js';
 import upload from '../middleware/upload.js';
 import VerifyToken from '../middleware/index.js';
 import History from '../modal/history.js';
@@ -24,10 +24,7 @@ router.post('/geography_theory', VerifyToken, async (req, res) => {
 
         console.log(`Forwarding geography theory request to AI service... (Query: "${query}")`);
 
-        // 3. Forward request to Python Backend (localhost:8000)
-        const pythonServiceUrl = 'http://localhost:8000/geography/analyze-map';
-
-        const response = await axios.post(pythonServiceUrl, pythonFormData, {
+        const response = await pythonApi.post('/geography/analyze-map', pythonFormData, {
             headers: {
                 ...pythonFormData.getHeaders(),
             },
@@ -58,7 +55,7 @@ router.post('/geography_theory', VerifyToken, async (req, res) => {
         // Agar Axios khud fail ho tab ye error handle hoga
         console.error('AI Forwarding Error:', error.response?.data || error.message);
 
-        const statusCode = error.response?.status || 500;
+        const statusCode = error.response?.status || error.statusCode || 500;
         const errorMessage = error.response?.data?.detail || error.message;
 
         return res.status(statusCode).json({
@@ -86,10 +83,7 @@ router.post('/Analyze_Image_Question', VerifyToken, upload.any(), async (req, re
 
         console.log(`Forwarding image analysis request to AI service... (Image: ${file ? 'Yes' : 'No'})`);
 
-        // 3. Forward request to Python Backend (localhost:8000)
-        const pythonServiceUrl = 'http://localhost:8000/geography/analyze-image-question';
-
-        const response = await axios.post(pythonServiceUrl, pythonFormData, {
+        const response = await pythonApi.post('/geography/analyze-image-question', pythonFormData, {
             headers: {
                 ...pythonFormData.getHeaders(),
             },
@@ -119,7 +113,7 @@ router.post('/Analyze_Image_Question', VerifyToken, upload.any(), async (req, re
     } catch (error) {
         console.error('AI Forwarding Error:', error.response?.data || error.message);
 
-        const statusCode = error.response?.status || 500;
+        const statusCode = error.response?.status || error.statusCode || 500;
         const errorMessage = error.response?.data?.detail || error.message;
 
         return res.status(statusCode).json({

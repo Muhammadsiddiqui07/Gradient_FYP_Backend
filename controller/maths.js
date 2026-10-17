@@ -45,7 +45,7 @@ router.post('/solve', VerifyToken, async (req, res) => {
         res.json(result);
     } catch (error) {
         console.error('Maths Controller Error:', error);
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error interacting with AI',
             error: error.response?.data || error.message
         });
@@ -60,7 +60,7 @@ router.get('/concepts', VerifyToken, async (req, res) => {
         res.json(result);
     } catch (error) {
         console.error('Error fetching concepts:', error);
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error fetching concepts',
             error: error.response?.data || error.message
         });
@@ -76,7 +76,7 @@ router.get('/concepts/:key', VerifyToken, async (req, res) => {
         res.json(result);
     } catch (error) {
         console.error(`Error fetching concept ${req.params.key}:`, error);
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: `Error fetching concept ${req.params.key}`,
             error: error.response?.data || error.message
         });
@@ -119,7 +119,7 @@ router.post('/graph_analysis', VerifyToken, upload.any(), async (req, res) => {
 
     } catch (error) {
         console.error('Graph Analysis Controller Error:', error);
-        res.status(error.response?.status || 500).json({
+        res.status(error.response?.status || error.statusCode || 500).json({
             message: 'Error interacting with AI',
             error: error.response?.data || error.message
         });
