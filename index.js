@@ -1,8 +1,8 @@
 import express from 'express'
-import 'dotenv/config'; // Load environment variables IMMEDIATELY for use in other imports
+import 'dotenv/config';
 import cors from 'cors'
 import router from './routes/index.js'
-import mongoose from './db/index.js'
+import mongoose, { connectDB } from './db/index.js'
 import chalk from 'chalk';
 
 const app = express()
@@ -25,21 +25,51 @@ app.use((req, res, next) => {
 
 // DB connection logs
 const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'Connection error:'));
+db.on('error', (err) => console.error(chalk.red('MongoDB connection error:'), err?.message || err));
 db.once('open', () => console.log(chalk.white.bgGreen.bold('DB connected!')));
 
-// Routes
-app.use('/api', (req, res, next) => {
-    if (db.readyState !== 1) {
+// Middleware: Har request se pehle DB connection ensure karo (Vercel serverless & local dono ke liye)
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.error(chalk.red('DB connect error:'), err.message);
         return res.status(503).json({
             success: false,
             message: 'Database is not connected. Check MongoDB configuration and network access.',
+            error: err.message,
         });
     }
+});
 
-    next();
-}, router)
+// Root / Health check route
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Backend server is running',
+        environment: process.env.VERCEL ? 'vercel' : 'local',
+        dbState: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    });
+});
 
-app.listen(port, () => {
-    console.log(chalk.white.bgBlue.bold(`Server is running on port ${port}`));
-})
+// Routes
+app.use('/api', router);
+
+// Vercel pe app.listen nahi chalta, sirf local pe chalao
+if (!process.env.VERCEL) {
+    connectDB()
+        .then(() => {
+            app.listen(port, () => {
+                console.log(chalk.white.bgBlue.bold(`Server is running on port ${port}`));
+            });
+        })
+        .catch((err) => {
+            console.error(chalk.red('MongoDB initial connection error:'), err.message);
+            app.listen(port, () => {
+                console.log(chalk.white.bgYellow.bold(`Server is running on port ${port} (DB disconnected)`));
+            });
+        });
+}
+
+export default app;

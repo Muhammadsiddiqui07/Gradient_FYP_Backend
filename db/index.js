@@ -1,16 +1,41 @@
 import mongoose from 'mongoose';
-import dns from 'dns';
 
-// Fix for some cloud environments where DNS resolution fails
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+let cached = global._mongoose;
+if (!cached) {
+  cached = global._mongoose = { conn: null, promise: null };
+}
 
+export async function connectDB() {
+  const uri = (process.env.MONGO_URI || process.env.MONGODB_URI)?.trim();
+  if (!uri) {
+    throw new Error('MONGO_URI (or MONGODB_URI) is not defined in environment variables. Please check your .env or Vercel Environment Variables.');
+  }
 
-const password = process.env.MONGODB_PASSWORD;
-// Prioritize full MONGO_URI if available, otherwise construct it from password
-const MONGO_URI = process.env.MONGO_URI || `mongodb+srv://muhammadsiddiqui1410_db_user:${encodeURIComponent(password)}@gradiant.6ezdxxr.mongodb.net/gradiant`;
+  if (cached.conn && mongoose.connection.readyState === 1) {
+    return cached.conn;
+  }
 
-mongoose.connect(MONGO_URI)
-  // .then(() => console.log('Successfully connected to MongoDB.'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+  if (!cached.promise || mongoose.connection.readyState === 0) {
+    const opts = {
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 10000,
+    };
+
+    cached.promise = mongoose.connect(uri, opts).then((m) => {
+      cached.conn = m;
+      return m;
+    });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    cached.promise = null;
+    cached.conn = null;
+    throw err;
+  }
+
+  return cached.conn;
+}
 
 export default mongoose;
